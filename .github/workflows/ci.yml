@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler: [gcc, clang]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install build tools
+      run: sudo apt-get update && sudo apt-get install -y cmake
+
+    - name: Configure
+      run: |
+        mkdir build && cd build
+        cmake .. -DCMAKE_C_COMPILER=${{ matrix.compiler }} -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON -DBUILD_EXAMPLES=ON
+
+    - name: Build
+      run: cmake --build build --parallel
+
+    - name: Test
+      run: ctest --test-dir build --output-on-failure
+
+    - name: Run example
+      run: ./build/basic_monitor
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install cppcheck
+      run: sudo apt-get update && sudo apt-get install -y cppcheck
+
+    - name: Run cppcheck
+      run: cppcheck --enable=all --error-exitcode=1 --suppress=missingIncludeSystem src/ include/
+
+  sanitize:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install build tools
+      run: sudo apt-get update && sudo apt-get install -y cmake gcc
+
+    - name: Configure with sanitizers
+      run: |
+        mkdir build && cd build
+        cmake .. -DCMAKE_C_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer -g" -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON
+
+    - name: Build
+      run: cmake --build build --parallel
+
+    - name: Test with sanitizers
+      run: ctest --test-dir build --output-on-failure
