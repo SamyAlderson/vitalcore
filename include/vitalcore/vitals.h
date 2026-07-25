@@ -1,17 +1,7 @@
-/**
- * @file vitals.h
- * @brief Vital signs data structures for VitalCore.
- *
- * Defines the core data types for representing patient vital signs.
- * All values use standard clinical units (bpm, %, mmHg, °C, breaths/min).
- */
-
-#ifndef VITALCORE_VITALS_H
-#define VITALCORE_VITALS_H
-
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -89,6 +79,7 @@ vc_vitals_history_t *vc_vitals_history_create(uint32_t capacity, uint32_t window
  */
 void vc_vitals_history_destroy(vc_vitals_history_t *history) {
     if (history != NULL) {
+        free(history->readings);
         free(history);
     }
 }
@@ -107,7 +98,11 @@ bool vc_vitals_history_add(vc_vitals_history_t *history, const vc_vitals_t *vita
     if (history->count >= history->capacity) {
         return false;
     }
-    history->readings[history->count] = *vitals;
+    if (history->count >= sizeof(history->readings) / sizeof(history->readings[0])) {
+        // buffer overflow
+        return false;
+    }
+    memcpy(&history->readings[history->count], vitals, sizeof(vc_vitals_t));
     history->count++;
     return true;
 }
@@ -128,5 +123,3 @@ const vc_vitals_t *vc_vitals_history_latest(const vc_vitals_history_t *history) 
 #ifdef __cplusplus
 }
 #endif
-
-#endif  // VITALCORE_VITALS_H
