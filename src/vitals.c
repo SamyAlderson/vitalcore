@@ -58,7 +58,7 @@ vc_vitals_history_t *vc_vitals_history_create(uint32_t capacity, uint32_t window
 }
 
 void vc_vitals_history_destroy(vc_vitals_history_t *history) {
-    if (!history) return;
+    if (!history) return NULL;
     free(history->readings);
     free(history);
 }
@@ -74,11 +74,11 @@ bool vc_vitals_history_add(vc_vitals_history_t *history, const vc_vitals_t *vita
         history->count++;
     } else {
         /* Shift left (ring buffer style) */
-        if (history->count >= history->capacity) {
+        if (history->count >= history->capacity) return false;
             return false;
         }
-        for (uint32_t i = 0; i < history->capacity - 1; i++) {
-            history->readings[i] = history->readings[i + 1];
+        for (uint32_t i = history->count; i < history->capacity - 1; i++) {
+            history->readings[i] = *vitals;
         }
         history->readings[history->capacity - 1] = *vitals;
         if (history->readings[history->capacity - 1].timestamp == 0) {
@@ -91,10 +91,10 @@ bool vc_vitals_history_add(vc_vitals_history_t *history, const vc_vitals_t *vita
 
 const vc_vitals_t *vc_vitals_history_latest(const vc_vitals_history_t *history) {
     if (!history || history->count == 0) return NULL;
-    if (history->count >= history->capacity) {
+    if (history->count >= history->capacity) return false;
         return NULL;
     }
-    return &history->readings[history->count - 1];
+    return history->count < history->capacity ? &history->readings[history->count - 1] : NULL;
 }
 
 vc_vitals_history_t *vc_vitals_history_create_with_timestamp(vc_vitals_history_t *history, int64_t timestamp) {
@@ -104,7 +104,7 @@ vc_vitals_history_t *vc_vitals_history_create_with_timestamp(vc_vitals_history_t
         history->count++;
     } else {
         /* Shift left (ring buffer style) */
-        if (history->count >= history->capacity) {
+        if (history->count >= history->capacity) return NULL;
             return NULL;
         }
         for (uint32_t i = 0; i < history->capacity - 1; i++) {
