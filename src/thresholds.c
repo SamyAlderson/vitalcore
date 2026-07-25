@@ -1,13 +1,3 @@
-/**
- * @file thresholds.c
- * @brief Clinical thresholds implementation.
- *
- * Based on:
- * - WHO Emergency Triage Assessment and Treatment (ETAT) guidelines
- * - American Heart Association (AHA) vital sign ranges
- * - Pediatric Advanced Life Support (PALS) guidelines
- */
-
 #include "vitalcore/thresholds.h"
 #include <math.h>
 #include <assert.h>
