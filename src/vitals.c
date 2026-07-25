@@ -7,6 +7,7 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <sys/time.h>
 #include "vitalcore/vitals.h"
 
 #define NaN __builtin_nanf("")
@@ -73,17 +74,50 @@ bool vc_vitals_history_add(vc_vitals_history_t *history, const vc_vitals_t *vita
         history->count++;
     } else {
         /* Shift left (ring buffer style) */
-        memmove(&history->readings[0], &history->readings[1],
-                (history->capacity - 1) * sizeof(vc_vitals_t));
+        if (history->count >= history->capacity) {
+            return false;
+        }
+        for (uint32_t i = 0; i < history->capacity - 1; i++) {
+            history->readings[i] = history->readings[i + 1];
+        }
         history->readings[history->capacity - 1] = *vitals;
         if (history->readings[history->capacity - 1].timestamp == 0) {
             history->readings[history->capacity - 1].timestamp = (int64_t)time(NULL);
         }
+        history->count++;
     }
     return true;
 }
 
 const vc_vitals_t *vc_vitals_history_latest(const vc_vitals_history_t *history) {
     if (!history || history->count == 0) return NULL;
+    if (history->count >= history->capacity) {
+        return NULL;
+    }
     return &history->readings[history->count - 1];
+}
+
+vc_vitals_history_t *vc_vitals_history_create_with_timestamp(vc_vitals_history_t *history, int64_t timestamp) {
+    if (!history) return NULL;
+    if (history->count < history->capacity) {
+        history->readings[history->count].timestamp = timestamp;
+        history->count++;
+    } else {
+        /* Shift left (ring buffer style) */
+        if (history->count >= history->capacity) {
+            return NULL;
+        }
+        for (uint32_t i = 0; i < history->capacity - 1; i++) {
+            history->readings[i].timestamp = history->readings[i + 1].timestamp;
+        }
+        history->readings[history->capacity - 1].timestamp = timestamp;
+        history->count++;
+    }
+    return history;
+}
+
+int64_t get_current_time() {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return tv.tv_sec;
 }
