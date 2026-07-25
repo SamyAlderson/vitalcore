@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -89,6 +90,7 @@ vc_vitals_history_t *vc_vitals_history_create(uint32_t capacity, uint32_t window
  */
 void vc_vitals_history_destroy(vc_vitals_history_t *history) {
     if (history != NULL) {
+        free(history->readings);
         free(history);
     }
 }
@@ -107,7 +109,10 @@ bool vc_vitals_history_add(vc_vitals_history_t *history, const vc_vitals_t *vita
     if (history->count >= history->capacity) {
         return false;
     }
-    history->readings[history->count] = *vitals;
+    if (history->count >= sizeof(history->readings) / sizeof(history->readings[0])) {
+        return false;
+    }
+    memcpy(&history->readings[history->count], vitals, sizeof(vc_vitals_t));
     history->count++;
     return true;
 }
@@ -120,6 +125,9 @@ bool vc_vitals_history_add(vc_vitals_history_t *history, const vc_vitals_t *vita
  */
 const vc_vitals_t *vc_vitals_history_latest(const vc_vitals_history_t *history) {
     if (history == NULL || history->count == 0) {
+        return NULL;
+    }
+    if (history->count >= sizeof(history->readings) / sizeof(history->readings[0])) {
         return NULL;
     }
     return &history->readings[history->count - 1];
