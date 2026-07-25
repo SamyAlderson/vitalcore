@@ -144,7 +144,7 @@ float vc_calculate_risk_score(const vc_vitals_t *vitals,
 
     score += compute_deviation_score(vitals);
 
-    if (anomalies) {
+    if (anomalies && anomalies->count > 0) {
         for (uint32_t i = 0; i < anomalies->count; i++) {
             switch (anomalies->anomalies[i].severity) {
                 case VC_SEVERITY_EMERGENCY: score += 12.5f; break;
