@@ -31,7 +31,12 @@ vc_threshold_result_t vc_eval_heart_rate(float hr, vc_age_group_t age) {
     r.normal_low = low;
     r.normal_high = high;
 
-    if (hr < crit_low || hr > crit_high) {
+    if (hr <= 0.0f || hr > 200.0f) {
+        // Invalid heart rate
+        r.is_abnormal = true;
+        r.is_critical = true;
+        r.interpretation = "Invalid heart rate";
+    } else if (hr < crit_low || hr > crit_high) {
         r.is_abnormal = true;
         r.is_critical = true;
         r.interpretation = (hr < crit_low) ? "Severe bradycardia" : "Severe tachycardia";
@@ -39,11 +44,10 @@ vc_threshold_result_t vc_eval_heart_rate(float hr, vc_age_group_t age) {
         r.is_abnormal = true;
         r.is_critical = false;
         r.interpretation = (hr < low) ? "Bradycardia" : "Tachycardia";
-    } else if (hr <= 0.0f || hr > 200.0f) {
-        // Invalid heart rate
-        r.is_abnormal = true;
-        r.is_critical = true;
-        r.interpretation = "Invalid heart rate";
+    } else {
+        r.is_abnormal = false;
+        r.is_critical = false;
+        r.interpretation = "Normal";
     }
 
     return r;
@@ -60,7 +64,12 @@ vc_threshold_result_t vc_eval_spo2(float spo2, vc_age_group_t age) {
     r.is_critical = false;
     r.interpretation = "Normal";
 
-    if (spo2 < 90.0f) {
+    if (spo2 <= 0.0f || spo2 > 100.0f) {
+        // Invalid SpO2 value
+        r.is_abnormal = true;
+        r.is_critical = true;
+        r.interpretation = "Invalid SpO2 value";
+    } else if (spo2 < 90.0f) {
         r.is_abnormal = true;
         r.is_critical = true;
         r.interpretation = "Severe hypoxia";
@@ -68,11 +77,10 @@ vc_threshold_result_t vc_eval_spo2(float spo2, vc_age_group_t age) {
         r.is_abnormal = true;
         r.is_critical = false;
         r.interpretation = "Mild hypoxia";
-    } else if (spo2 <= 0.0f || spo2 > 100.0f) {
-        // Invalid SpO2 value
-        r.is_abnormal = true;
-        r.is_critical = true;
-        r.interpretation = "Invalid SpO2 value";
+    } else {
+        r.is_abnormal = false;
+        r.is_critical = false;
+        r.interpretation = "Normal";
     }
 
     return r;
@@ -100,7 +108,12 @@ vc_threshold_result_t vc_eval_systolic(float sbp, vc_age_group_t age) {
             break;
     }
 
-    if (sbp < 70.0f || sbp > 180.0f) {
+    if (sbp <= 0.0f || sbp > 200.0f) {
+        // Invalid systolic BP
+        r.is_abnormal = true;
+        r.is_critical = true;
+        r.interpretation = "Invalid systolic BP";
+    } else if (sbp < 70.0f || sbp > 180.0f) {
         r.is_abnormal = true;
         r.is_critical = true;
         r.interpretation = (sbp < 70.0f) ? "Severe hypotension" : "Hypertensive crisis";
@@ -108,11 +121,10 @@ vc_threshold_result_t vc_eval_systolic(float sbp, vc_age_group_t age) {
         r.is_abnormal = true;
         r.is_critical = false;
         r.interpretation = (sbp < r.normal_low) ? "Hypotension" : "Hypertension";
-    } else if (sbp <= 0.0f || sbp > 200.0f) {
-        // Invalid systolic BP
-        r.is_abnormal = true;
-        r.is_critical = true;
-        r.interpretation = "Invalid systolic BP";
+    } else {
+        r.is_abnormal = false;
+        r.is_critical = false;
+        r.interpretation = "Normal";
     }
 
     return r;
@@ -140,7 +152,12 @@ vc_threshold_result_t vc_eval_diastolic(float dbp, vc_age_group_t age) {
             break;
     }
 
-    if (dbp < 40.0f || dbp > 120.0f) {
+    if (dbp <= 0.0f || dbp > 120.0f) {
+        // Invalid diastolic BP
+        r.is_abnormal = true;
+        r.is_critical = true;
+        r.interpretation = "Invalid diastolic BP";
+    } else if (dbp < 40.0f || dbp > 120.0f) {
         r.is_abnormal = true;
         r.is_critical = true;
         r.interpretation = (dbp < 40.0f) ? "Severe hypotension" : "Hypertensive crisis";
@@ -148,11 +165,10 @@ vc_threshold_result_t vc_eval_diastolic(float dbp, vc_age_group_t age) {
         r.is_abnormal = true;
         r.is_critical = false;
         r.interpretation = (dbp < r.normal_low) ? "Low diastolic" : "High diastolic";
-    } else if (dbp <= 0.0f || dbp > 120.0f) {
-        // Invalid diastolic BP
-        r.is_abnormal = true;
-        r.is_critical = true;
-        r.interpretation = "Invalid diastolic BP";
+    } else {
+        r.is_abnormal = false;
+        r.is_critical = false;
+        r.interpretation = "Normal";
     }
 
     return r;
@@ -168,7 +184,12 @@ vc_threshold_result_t vc_eval_temperature(float temp) {
     r.is_critical = false;
     r.interpretation = "Normal";
 
-    if (temp < 32.0f || temp > 41.0f) {
+    if (temp <= 0.0f || temp > 50.0f) {
+        // Invalid temperature
+        r.is_abnormal = true;
+        r.is_critical = true;
+        r.interpretation = "Invalid temperature";
+    } else if (temp < 32.0f || temp > 41.0f) {
         r.is_abnormal = true;
         r.is_critical = true;
         r.interpretation = (temp < 32.0f) ? "Severe hypothermia" : "Hyperpyrexia";
@@ -176,11 +197,10 @@ vc_threshold_result_t vc_eval_temperature(float temp) {
         r.is_abnormal = true;
         r.is_critical = (temp < 34.0f || temp > 40.0f);
         r.interpretation = (temp < 35.0f) ? "Hypothermia" : "Fever";
-    } else if (temp <= 0.0f || temp > 50.0f) {
-        // Invalid temperature
-        r.is_abnormal = true;
-        r.is_critical = true;
-        r.interpretation = "Invalid temperature";
+    } else {
+        r.is_abnormal = false;
+        r.is_critical = false;
+        r.interpretation = "Normal";
     }
 
     return r;
@@ -208,7 +228,12 @@ vc_threshold_result_t vc_eval_respiratory_rate(float rr, vc_age_group_t age) {
             break;
     }
 
-    if (rr < 8.0f || rr > 40.0f) {
+    if (rr <= 0.0f || rr > 60.0f) {
+        // Invalid respiratory rate
+        r.is_abnormal = true;
+        r.is_critical = true;
+        r.interpretation = "Invalid respiratory rate";
+    } else if (rr < 8.0f || rr > 40.0f) {
         r.is_abnormal = true;
         r.is_critical = true;
         r.interpretation = (rr < 8.0f) ? "Severe bradypnea" : "Severe tachypnea";
@@ -216,11 +241,10 @@ vc_threshold_result_t vc_eval_respiratory_rate(float rr, vc_age_group_t age) {
         r.is_abnormal = true;
         r.is_critical = false;
         r.interpretation = (rr < r.normal_low) ? "Bradypnea" : "Tachypnea";
-    } else if (rr <= 0.0f || rr > 60.0f) {
-        // Invalid respiratory rate
-        r.is_abnormal = true;
-        r.is_critical = true;
-        r.interpretation = "Invalid respiratory rate";
+    } else {
+        r.is_abnormal = false;
+        r.is_critical = false;
+        r.interpretation = "Normal";
     }
 
     return r;
