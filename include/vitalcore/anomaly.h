@@ -1,11 +1,3 @@
-/**
- * @file anomaly.h
- * @brief Anomaly detection for vital signs.
- *
- * Detects clinical anomalies in vital signs data using
- * evidence-based medical rules and pattern recognition.
- */
-
 #ifndef VITALCORE_ANOMALY_H
 #define VITALCORE_ANOMALY_H
 
@@ -15,6 +7,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @file anomaly.h
+ * @brief Anomaly detection for vital signs.
+ *
+ * Detects clinical anomalies in vital signs data using
+ * evidence-based medical rules and pattern recognition.
+ */
 
 /**
  * @brief Type of anomaly detected.
@@ -85,36 +85,8 @@ typedef struct {
     bool has_critical;                         /**< true if any CRITICAL severity */
 } vc_anomaly_result_t;
 
-/**
- * @brief Analyze vital signs for anomalies.
- *
- * @param vitals Vital signs to analyze.
- * @param history Optional history for trend analysis (can be NULL).
- * @param result Output: anomaly analysis result.
- * @return Number of anomalies detected.
- */
-uint32_t vc_analyze(const vc_vitals_t *vitals,
-                    const vc_vitals_history_t *history,
-                    vc_anomaly_result_t *result);
-
-/**
- * @brief Get human-readable string for anomaly type.
- *
- * @param type Anomaly type.
- * @return String name of the anomaly type.
- */
-const char *vc_anomaly_type_name(vc_anomaly_type_t type);
-
-/**
- * @brief Get human-readable string for severity level.
- *
- * @param severity Severity level.
- * @return String name of the severity.
- */
-const char *vc_severity_name(vc_severity_t severity);
-
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* VITALCORE_ANOMALY_H */
+#endif  // VITALCORE_ANOMALY_H
