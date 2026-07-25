@@ -48,16 +48,14 @@ vc_mews_score_t vc_calculate_mews(const vc_vitals_t *vitals) {
     vc_mews_score_t mews;
     memset(&mews, 0, sizeof(mews));
 
-    if (!vitals) return mews;
+    if (!vitals || !vitals->heart_rate || !vitals->systolic || !vitals->respiratory_rate || !vitals->temperature) {
+        return mews;
+    }
 
-    mews.heart_rate_score = vc_vitals_is_present(vitals->heart_rate)
-        ? mews_heart_rate(vitals->heart_rate) : 0;
-    mews.systolic_score = vc_vitals_is_present(vitals->systolic)
-        ? mews_systolic(vitals->systolic) : 0;
-    mews.respiratory_rate_score = vc_vitals_is_present(vitals->respiratory_rate)
-        ? mews_respiratory_rate(vitals->respiratory_rate) : 0;
-    mews.temperature_score = vc_vitals_is_present(vitals->temperature)
-        ? mews_temperature(vitals->temperature) : 0;
+    mews.heart_rate_score = mews_heart_rate(vitals->heart_rate);
+    mews.systolic_score = mews_systolic(vitals->systolic);
+    mews.respiratory_rate_score = mews_respiratory_rate(vitals->respiratory_rate);
+    mews.temperature_score = mews_temperature(vitals->temperature);
     mews.consciousness_score = 0; /* AVPU not available by default */
 
     mews.total = mews.heart_rate_score + mews.systolic_score +
@@ -101,36 +99,31 @@ static float compute_deviation_score(const vc_vitals_t *vitals) {
     float score = 0.0f;
     int count = 0;
 
-    /* Heart rate deviation from midpoint (80) */
-    if (vc_vitals_is_present(vitals->heart_rate)) {
+    if (vitals->heart_rate) {
         float dev = fabsf(vitals->heart_rate - 80.0f) / 80.0f;
         score += dev * 25.0f;
         count++;
     }
 
-    /* SpO2 deviation from 98% */
-    if (vc_vitals_is_present(vitals->spo2)) {
+    if (vitals->spo2) {
         float dev = fabsf(vitals->spo2 - 98.0f) / 98.0f;
         score += dev * 30.0f;
         count++;
     }
 
-    /* Systolic BP deviation from 120 */
-    if (vc_vitals_is_present(vitals->systolic)) {
+    if (vitals->systolic) {
         float dev = fabsf(vitals->systolic - 120.0f) / 120.0f;
         score += dev * 20.0f;
         count++;
     }
 
-    /* Temperature deviation from 37.0 */
-    if (vc_vitals_is_present(vitals->temperature)) {
+    if (vitals->temperature) {
         float dev = fabsf(vitals->temperature - 37.0f) / 37.0f;
         score += dev * 15.0f;
         count++;
     }
 
-    /* Respiratory rate deviation from 16 */
-    if (vc_vitals_is_present(vitals->respiratory_rate)) {
+    if (vitals->respiratory_rate) {
         float dev = fabsf(vitals->respiratory_rate - 16.0f) / 16.0f;
         score += dev * 10.0f;
         count++;
@@ -146,14 +139,11 @@ float vc_calculate_risk_score(const vc_vitals_t *vitals,
 
     float score = 0.0f;
 
-    /* Component 1: MEWS-based (0-40 points) */
     vc_mews_score_t mews = vc_calculate_mews(vitals);
     score += (float)mews.total / 14.0f * 40.0f;
 
-    /* Component 2: Vital sign deviations (0-25 points) */
     score += compute_deviation_score(vitals);
 
-    /* Component 3: Anomaly severity (0-25 points) */
     if (anomalies) {
         for (uint32_t i = 0; i < anomalies->count; i++) {
             switch (anomalies->anomalies[i].severity) {
@@ -166,21 +156,20 @@ float vc_calculate_risk_score(const vc_vitals_t *vitals,
         if (score > 25.0f) score = 25.0f;
     }
 
-    /* Component 4: Trend deterioration (0-10 points) */
     if (history && history->count >= 2) {
         const vc_vitals_t *latest = vc_vitals_history_latest(history);
         const vc_vitals_t *prev = &history->readings[history->count - 2];
         if (latest && prev) {
             float trend_score = 0.0f;
-            if (vc_vitals_is_present(latest->spo2) && vc_vitals_is_present(prev->spo2)) {
+            if (latest->spo2 && prev->spo2) {
                 float drop = prev->spo2 - latest->spo2;
                 if (drop > 3.0f) trend_score += 5.0f;
             }
-            if (vc_vitals_is_present(latest->heart_rate) && vc_vitals_is_present(prev->heart_rate)) {
+            if (latest->heart_rate && prev->heart_rate) {
                 float hr_change = fabsf(latest->heart_rate - prev->heart_rate);
                 if (hr_change > 20.0f) trend_score += 3.0f;
             }
-            if (vc_vitals_is_present(latest->systolic) && vc_vitals_is_present(prev->systolic)) {
+            if (latest->systolic && prev->systolic) {
                 float bp_drop = prev->systolic - latest->systolic;
                 if (bp_drop > 20.0f) trend_score += 5.0f;
             }
@@ -188,7 +177,6 @@ float vc_calculate_risk_score(const vc_vitals_t *vitals,
         }
     }
 
-    /* Clamp to 0-100 */
     if (score < 0.0f) score = 0.0f;
     if (score > 100.0f) score = 100.0f;
 
