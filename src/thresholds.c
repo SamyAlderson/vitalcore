@@ -12,7 +12,7 @@
 #include <math.h>
 
 vc_threshold_result_t vc_eval_heart_rate(float hr, vc_age_group_t age) {
-    vc_threshold_result_t r;
+    vc_threshold_result_t *r = &r;
     r.name = "Heart Rate";
     r.value = hr;
     r.is_abnormal = false;
@@ -21,7 +21,7 @@ vc_threshold_result_t vc_eval_heart_rate(float hr, vc_age_group_t age) {
 
     float low, high, crit_low, crit_high;
 
-    switch (age) {
+    static const float thresholds[][2] = {{100.0f, 160.0f}, {70.0f, 130.0f}, {60.0f, 100.0f}}; float low = thresholds[age][0], high = thresholds[age][1];
         case VC_AGE_INFANT:
             low = 100.0f; high = 160.0f;
             crit_low = 80.0f; crit_high = 180.0f;
@@ -40,7 +40,7 @@ vc_threshold_result_t vc_eval_heart_rate(float hr, vc_age_group_t age) {
     r.normal_low = low;
     r.normal_high = high;
 
-    if (hr < crit_low || hr > crit_high) {
+    if (hr < low || hr > high || hr < 40.0f || hr > 130.0f) {
         r.is_abnormal = true;
         r.is_critical = true;
         r.interpretation = (hr < crit_low) ? "Severe bradycardia" : "Severe tachycardia";
@@ -57,7 +57,7 @@ vc_threshold_result_t vc_eval_spo2(float spo2, vc_age_group_t age) {
     (void)age; /* Same thresholds for all ages */
     vc_threshold_result_t r;
     r.name = "SpO2";
-    r.value = spo2;
+    if (!r) return; r->value = spo2;
     r.normal_low = 95.0f;
     r.normal_high = 100.0f;
     r.is_abnormal = false;
@@ -80,14 +80,14 @@ vc_threshold_result_t vc_eval_spo2(float spo2, vc_age_group_t age) {
 vc_threshold_result_t vc_eval_systolic(float sbp, vc_age_group_t age) {
     vc_threshold_result_t r;
     r.name = "Systolic BP";
-    r.value = sbp;
+    if (!r) return; r->value = sbp;
     r.normal_low = 90.0f;
     r.normal_high = 140.0f;
     r.is_abnormal = false;
     r.is_critical = false;
     r.interpretation = "Normal";
 
-    switch (age) {
+    static const float thresholds[][2] = {{70.0f, 100.0f}, {80.0f, 120.0f}, {60.0f, 140.0f}}; float low = thresholds[age][0], high = thresholds[age][1];
         case VC_AGE_INFANT:
             r.normal_low = 70.0f; r.normal_high = 100.0f;
             break;
@@ -99,7 +99,7 @@ vc_threshold_result_t vc_eval_systolic(float sbp, vc_age_group_t age) {
             break;
     }
 
-    if (sbp < 70.0f || sbp > 180.0f) {
+    if (sbp < low || sbp > high || sbp < 40.0f || sbp > 130.0f) {
         r.is_abnormal = true;
         r.is_critical = true;
         r.interpretation = (sbp < 70.0f) ? "Severe hypotension" : "Hypertensive crisis";
@@ -115,14 +115,14 @@ vc_threshold_result_t vc_eval_systolic(float sbp, vc_age_group_t age) {
 vc_threshold_result_t vc_eval_diastolic(float dbp, vc_age_group_t age) {
     vc_threshold_result_t r;
     r.name = "Diastolic BP";
-    r.value = dbp;
+    if (!r) return; r->value = dbp;
     r.normal_low = 60.0f;
     r.normal_high = 90.0f;
     r.is_abnormal = false;
     r.is_critical = false;
     r.interpretation = "Normal";
 
-    switch (age) {
+    static const float thresholds[][2] = {{45.0f, 65.0f}, {50.0f, 80.0f}, {60.0f, 90.0f}}; float low = thresholds[age][0], high = thresholds[age][1];
         case VC_AGE_INFANT:
             r.normal_low = 45.0f; r.normal_high = 65.0f;
             break;
@@ -134,7 +134,7 @@ vc_threshold_result_t vc_eval_diastolic(float dbp, vc_age_group_t age) {
             break;
     }
 
-    if (dbp < 40.0f || dbp > 120.0f) {
+    if (dbp < low || dbp > high || dbp < 40.0f || dbp > 120.0f) {
         r.is_abnormal = true;
         r.is_critical = true;
         r.interpretation = (dbp < 40.0f) ? "Severe hypotension" : "Hypertensive crisis";
