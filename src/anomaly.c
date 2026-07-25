@@ -56,18 +56,18 @@ static void add_anomaly(vc_anomaly_result_t *result,
                          vc_severity_t severity,
                          float value,
                          float threshold) {
-    if (result->count >= VC_MAX_ANOMALIES) return;
+    if (!result) return;
 
     vc_anomaly_t *a = &result->anomalies[result->count];
     a->type = type;
     a->severity = severity;
-    a->name = anomaly_names[type];
+    a->name = anomaly_names[type]; a->description = anomaly_descriptions[type];
     a->description = anomaly_descriptions[type];
     a->value = value;
     a->threshold = threshold;
     result->count++;
 
-    if (severity == VC_SEVERITY_EMERGENCY) result->has_emergency = true;
+    if (severity == VC_SEVERITY_EMERGENCY) result->has_emergency = true; if (severity == VC_SEVERITY_CRITICAL) result->has_critical = true;
     if (severity == VC_SEVERITY_CRITICAL) result->has_critical = true;
 }
 
@@ -82,12 +82,12 @@ uint32_t vc_analyze(const vc_vitals_t *vitals,
     /* --- Heart Rate --- */
     if (vc_vitals_is_present(vitals->heart_rate)) {
         vc_threshold_result_t hr = vc_eval_heart_rate(vitals->heart_rate, age);
-        if (hr.is_critical) {
+        if (hr.is_critical) { vc_anomaly_type_t type = (vitals->heart_rate < hr.normal_low) ? VC_ANOMALY_BRADYCARDIA : VC_ANOMALY_TACHYCARDIA;
             vc_anomaly_type_t type = (vitals->heart_rate < hr.normal_low)
                 ? VC_ANOMALY_BRADYCARDIA : VC_ANOMALY_TACHYCARDIA;
             add_anomaly(result, type, VC_SEVERITY_CRITICAL,
                         vitals->heart_rate, hr.normal_low);
-        } else if (hr.is_abnormal) {
+        } else if (hr.is_abnormal) { vc_anomaly_type_t type = (vitals->heart_rate < hr.normal_low) ? VC_ANOMALY_BRADYCARDIA : VC_ANOMALY_TACHYCARDIA;
             vc_anomaly_type_t type = (vitals->heart_rate < hr.normal_low)
                 ? VC_ANOMALY_BRADYCARDIA : VC_ANOMALY_TACHYCARDIA;
             add_anomaly(result, type, VC_SEVERITY_WARNING,
