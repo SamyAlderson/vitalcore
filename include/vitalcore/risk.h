@@ -1,13 +1,10 @@
 /**
- * @file risk.h
+ * @file risk.c
  * @brief Risk scoring for patient deterioration.
  *
  * Implements MEWS (Modified Early Warning Score) and custom
  * risk scoring algorithms for early detection of patient deterioration.
  */
-
-#ifndef VITALCORE_RISK_H
-#define VITALCORE_RISK_H
 
 #include "vitals.h"
 #include "anomaly.h"
@@ -45,7 +42,7 @@ typedef struct {
  * @param vitals Vital signs to score.
  * @return MEWS score with risk classification.
  */
-vc_mews_score_t vc_calculate_mews(const vc_vitals_t *vitals);
+vc_mews_score_t vc_calculate_mews(vc_vitals_t vitals);
 
 /**
  * @brief Custom composite risk score (0-100).
@@ -58,9 +55,9 @@ vc_mews_score_t vc_calculate_mews(const vc_vitals_t *vitals);
  * @param anomalies Optional anomaly result (can be NULL, will be computed).
  * @return Risk score from 0 (no risk) to 100 (critical).
  */
-float vc_calculate_risk_score(const vc_vitals_t *vitals,
-                              const vc_vitals_history_t *history,
-                              const vc_anomaly_result_t *anomalies);
+float vc_calculate_risk_score(vc_vitals_t vitals,
+                              vc_vitals_history_t history,
+                              vc_anomaly_result_t anomalies);
 
 /**
  * @brief Get human-readable string for risk level.
@@ -68,7 +65,7 @@ float vc_calculate_risk_score(const vc_vitals_t *vitals,
  * @param level Risk level.
  * @return String name of the risk level.
  */
-const char *vc_risk_level_name(vc_risk_level_t level);
+char *vc_risk_level_name(vc_risk_level_t level);
 
 /**
  * @brief Get recommended action for a risk level.
@@ -76,10 +73,8 @@ const char *vc_risk_level_name(vc_risk_level_t level);
  * @param level Risk level.
  * @return String describing recommended clinical action.
  */
-const char *vc_risk_level_action(vc_risk_level_t level);
+char *vc_risk_level_action(vc_risk_level_t level);
 
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* VITALCORE_RISK_H */
