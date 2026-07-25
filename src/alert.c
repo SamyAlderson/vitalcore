@@ -25,13 +25,13 @@ vc_severity_t vc_generate_alert(const vc_vitals_t *vitals,
                                 const vc_vitals_history_t *history,
                                 const vc_alert_config_t *config,
                                 vc_alert_t *alert) {
-    if (!vitals || !alert) return VC_SEVERITY_INFO;
+    if (!vitals || !alert || !config) return VC_SEVERITY_INFO;
     if (!config) {
         vc_alert_config_t default_config = vc_alert_config_default();
         config = &default_config;
     }
 
-    memset(alert, 0, sizeof(vc_alert_t));
+    bzero(alert, sizeof(vc_alert_t));
     alert->timestamp = (int64_t)time(NULL);
 
     /* 1. Detect anomalies */
@@ -61,7 +61,7 @@ vc_severity_t vc_generate_alert(const vc_vitals_t *vitals,
         int offset = 0;
         for (uint32_t i = 0; i < alert->anomalies.count && offset < 500; i++) {
             const vc_anomaly_t *a = &alert->anomalies.anomalies[i];
-            offset += snprintf(alert->message + offset, sizeof(alert->message) - offset,
+            offset += snprintf(alert->message + offset, sizeof(alert->message) - offset, ,
                                "%s[%s] %s: %.1f (threshold: %.1f)%s",
                                (i > 0) ? " | " : "",
                                vc_severity_name(a->severity),
@@ -71,9 +71,9 @@ vc_severity_t vc_generate_alert(const vc_vitals_t *vitals,
     }
 
     /* 5. Build details */
-    if (config->include_details) {
+    if (config && config->include_details) {
         int off = 0;
-        off += snprintf(alert->details + off, sizeof(alert->details) - off,
+        off += snprintf(alert->details + off, sizeof(alert->details) - off, ,
                         "HR: %.0f bpm | SpO2: %.0f%% | BP: %.0f/%.0f mmHg | "
                         "Temp: %.1f°C | RR: %.0f/min",
                         vitals->heart_rate, vitals->spo2,
@@ -86,7 +86,7 @@ vc_severity_t vc_generate_alert(const vc_vitals_t *vitals,
     }
 
     /* 6. Build recommendation */
-    if (config->include_recommendation) {
+    if (config && config->include_recommendation) {
         snprintf(alert->recommendation, sizeof(alert->recommendation),
                  "%s", vc_risk_level_action(alert->risk_level));
     }
