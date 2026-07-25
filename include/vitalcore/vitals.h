@@ -11,6 +11,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,7 +58,7 @@ typedef struct {
  * @brief Vital signs trends over time (for pattern detection).
  */
 typedef struct {
-    vc_vitals_t *readings;  /**< Array of historical readings */
+    vc_vitals_t readings[1];  /**< Array of historical readings */
     uint32_t count;         /**< Number of readings */
     uint32_t capacity;      /**< Allocated capacity */
     uint32_t window_minutes;/**< Time window in minutes for trend analysis */
@@ -70,14 +71,27 @@ typedef struct {
  * @param window_minutes Time window for trend analysis.
  * @return Pointer to allocated history, or NULL on failure.
  */
-vc_vitals_history_t *vc_vitals_history_create(uint32_t capacity, uint32_t window_minutes);
+vc_vitals_history_t *vc_vitals_history_create(uint32_t capacity, uint32_t window_minutes) {
+    vc_vitals_history_t *history = malloc(sizeof(vc_vitals_history_t) + (capacity - 1) * sizeof(vc_vitals_t));
+    if (history == NULL) {
+        return NULL;
+    }
+    history->count = 0;
+    history->capacity = capacity;
+    history->window_minutes = window_minutes;
+    return history;
+}
 
 /**
  * @brief Free a vitals history buffer.
  *
  * @param history Pointer to history to free.
  */
-void vc_vitals_history_destroy(vc_vitals_history_t *history);
+void vc_vitals_history_destroy(vc_vitals_history_t *history) {
+    if (history != NULL) {
+        free(history);
+    }
+}
 
 /**
  * @brief Add a reading to the history buffer.
@@ -86,7 +100,17 @@ void vc_vitals_history_destroy(vc_vitals_history_t *history);
  * @param vitals Vital signs reading to add.
  * @return true on success, false if buffer is full.
  */
-bool vc_vitals_history_add(vc_vitals_history_t *history, const vc_vitals_t *vitals);
+bool vc_vitals_history_add(vc_vitals_history_t *history, const vc_vitals_t *vitals) {
+    if (history == NULL || vitals == NULL) {
+        return false;
+    }
+    if (history->count >= history->capacity) {
+        return false;
+    }
+    history->readings[history->count] = *vitals;
+    history->count++;
+    return true;
+}
 
 /**
  * @brief Get the latest reading from history.
@@ -94,34 +118,15 @@ bool vc_vitals_history_add(vc_vitals_history_t *history, const vc_vitals_t *vita
  * @param history Pointer to history.
  * @return Pointer to latest reading, or NULL if empty.
  */
-const vc_vitals_t *vc_vitals_history_latest(const vc_vitals_history_t *history);
-
-/**
- * @brief Calculate mean arterial pressure from systolic/diastolic.
- *
- * @param systolic Systolic pressure in mmHg.
- * @param diastolic Diastolic pressure in mmHg.
- * @return Mean arterial pressure in mmHg.
- */
-float vc_calculate_map(float systolic, float diastolic);
-
-/**
- * @brief Create a default vitals structure with zeroed values.
- *
- * @return Zeroed vitals structure.
- */
-vc_vitals_t vc_vitals_default(void);
-
-/**
- * @brief Check if a vital sign value is present (not NaN/zero).
- *
- * @param value The vital sign value.
- * @return true if the value is present and valid.
- */
-bool vc_vitals_is_present(float value);
+const vc_vitals_t *vc_vitals_history_latest(const vc_vitals_history_t *history) {
+    if (history == NULL || history->count == 0) {
+        return NULL;
+    }
+    return &history->readings[history->count - 1];
+}
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* VITALCORE_VITALS_H */
+#endif  // VITALCORE_VITALS_H
