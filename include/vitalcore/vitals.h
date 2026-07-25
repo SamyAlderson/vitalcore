@@ -98,7 +98,7 @@ bool vc_vitals_history_add(vc_vitals_history_t *history, const vc_vitals_t *vita
     if (history->count >= history->capacity) {
         return false;
     }
-    if (history->count >= sizeof(history->readings) / sizeof(history->readings[0])) {
+    if (history->count >= (sizeof(history->readings) / sizeof(history->readings[0]))) {
         // buffer overflow
         return false;
     }
@@ -117,7 +117,23 @@ const vc_vitals_t *vc_vitals_history_latest(const vc_vitals_history_t *history) 
     if (history == NULL || history->count == 0) {
         return NULL;
     }
-    return &history->readings[history->count - 1];
+    if (history->count > 0) {
+        return &history->readings[history->count - 1];
+    }
+    return NULL; // added this to handle count == 0
+}
+
+/**
+ * @brief Get the oldest reading from history.
+ *
+ * @param history Pointer to history.
+ * @return Pointer to oldest reading, or NULL if empty.
+ */
+const vc_vitals_t *vc_vitals_history_oldest(const vc_vitals_history_t *history) {
+    if (history == NULL || history->count == 0) {
+        return NULL;
+    }
+    return &history->readings[0];
 }
 
 #ifdef __cplusplus
