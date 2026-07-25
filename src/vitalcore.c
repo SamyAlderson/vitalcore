@@ -56,24 +56,27 @@ vc_severity_t vc_monitor_analyze(vc_monitor_t *monitor,
     if (reading.timestamp == 0) {
         reading.timestamp = (int64_t)time(NULL);
     }
-    vc_vitals_history_add(monitor->history, &reading);
+    if (monitor->history) {
+        vc_vitals_history_add(monitor->history, &reading);
+    }
 
     /* Auto-calculate MAP if not provided */
     if (reading.mean_arterial == 0.0f &&
         vc_vitals_is_present(reading.systolic) &&
         vc_vitals_is_present(reading.diastolic)) {
-        reading.mean_arterial = vc_calculate_map(reading.systolic, reading.diastolic);
+        if (reading.systolic != 0.0f && reading.diastolic != 0.0f) {
+            reading.mean_arterial = vc_calculate_map(reading.systolic, reading.diastolic);
+        }
     }
 
     /* Generate alert */
-    vc_severity_t severity = vc_generate_alert(vitals, monitor->history,
-                                                &monitor->alert_config, alert);
+    if (monitor->history) {
+        vc_severity_t severity = vc_generate_alert(vitals, monitor->history,
+                                                    &monitor->alert_config, alert);
+        return severity;
+    }
 
-    /* Cache scores */
-    monitor->last_risk_score = alert->risk_score;
-    monitor->last_mews_score = alert->mews_score;
-
-    return severity;
+    return VC_SEVERITY_INFO;
 }
 
 void vc_monitor_set_alert_config(vc_monitor_t *monitor,
