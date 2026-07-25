@@ -1,8 +1,3 @@
-/**
- * @file alert.c
- * @brief Clinical alert engine implementation.
- */
-
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -35,13 +30,24 @@ vc_severity_t vc_generate_alert(const vc_vitals_t *vitals,
     alert->timestamp = (int64_t)time(NULL);
 
     /* 1. Detect anomalies */
-    vc_analyze(vitals, history, &alert->anomalies);
+    if (!vc_analyze(vitals, history, &alert->anomalies)) {
+        // log error
+        return VC_SEVERITY_INFO;
+    }
 
     /* 2. Calculate risk scores */
     vc_mews_score_t mews = vc_calculate_mews(vitals);
+    if (mews.total < 0 || mews.risk_level < 0 || mews.risk_level > VC_RISK_HIGH) {
+        // log error
+        return VC_SEVERITY_INFO;
+    }
     alert->mews_score = mews.total;
     alert->risk_level = mews.risk_level;
     alert->risk_score = vc_calculate_risk_score(vitals, history, &alert->anomalies);
+    if (alert->risk_score < 0 || alert->risk_score > 100) {
+        // log error
+        return VC_SEVERITY_INFO;
+    }
 
     /* 3. Determine overall severity */
     alert->severity = VC_SEVERITY_INFO;
