@@ -1,11 +1,3 @@
-/**
- * @file alert.h
- * @brief Clinical alert engine.
- *
- * Generates severity-graded clinical alerts from vital signs
- * analysis, anomaly detection, and risk scoring.
- */
-
 #ifndef VITALCORE_ALERT_H
 #define VITALCORE_ALERT_H
 
@@ -98,8 +90,22 @@ uint32_t vc_alert_format_json(const vc_alert_t *alert,
                               char *buffer,
                               uint32_t buffer_size);
 
+/**
+ * @brief Append formatted alert to buffer.
+ *
+ * @param alert Alert to format.
+ * @param buffer Output buffer.
+ * @param buffer_size Size of output buffer.
+ * @param offset Current offset in buffer.
+ * @return New offset in buffer.
+ */
+uint32_t vc_alert_append_to_buffer(const vc_alert_t *alert,
+                                   char *buffer,
+                                   uint32_t buffer_size,
+                                   uint32_t offset);
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* VITALCORE_ALERT_H */
+#endif  // VITALCORE_ALERT_H
