@@ -1,11 +1,3 @@
-/**
- * @file vitalcore.h
- * @brief Main API for VitalCore — real-time vital signs monitoring.
- *
- * This is the primary header to include. It provides the high-level
- * monitor API for analyzing patient vital signs and generating alerts.
- */
-
 #ifndef VITALCORE_H
 #define VITALCORE_H
 
