@@ -20,7 +20,10 @@ vc_severity_t vc_generate_alert(const vc_vitals_t *vitals,
                                 const vc_vitals_history_t *history,
                                 const vc_alert_config_t *config,
                                 vc_alert_t *alert) {
-    if (!vitals || !alert) return VC_SEVERITY_INFO;
+    if (!vitals || !alert) {
+        // log error and return default severity
+        return VC_SEVERITY_INFO;
+    }
     if (!config) {
         vc_alert_config_t default_config = vc_alert_config_default();
         config = &default_config;
@@ -31,21 +34,21 @@ vc_severity_t vc_generate_alert(const vc_vitals_t *vitals,
 
     /* 1. Detect anomalies */
     if (!vc_analyze(vitals, history, &alert->anomalies)) {
-        // log error
+        // log error and return default severity
         return VC_SEVERITY_INFO;
     }
 
     /* 2. Calculate risk scores */
     vc_mews_score_t mews = vc_calculate_mews(vitals);
     if (mews.total < 0 || mews.risk_level < 0 || mews.risk_level > VC_RISK_HIGH) {
-        // log error
+        // log error and return default severity
         return VC_SEVERITY_INFO;
     }
     alert->mews_score = mews.total;
     alert->risk_level = mews.risk_level;
     alert->risk_score = vc_calculate_risk_score(vitals, history, &alert->anomalies);
     if (alert->risk_score < 0 || alert->risk_score > 100) {
-        // log error
+        // log error and return default severity
         return VC_SEVERITY_INFO;
     }
 
@@ -86,75 +89,9 @@ vc_severity_t vc_generate_alert(const vc_vitals_t *vitals,
                         vitals->systolic, vitals->diastolic,
                         vitals->temperature, vitals->respiratory_rate);
         off += snprintf(alert->details + off, sizeof(alert->details) - off,
-                        " | MEWS: %d | Risk: %.1f%% | Level: %s",
-                        alert->mews_score, alert->risk_score,
-                        vc_risk_level_name(alert->risk_level));
-    }
-
-    /* 6. Build recommendation */
-    if (config->include_recommendation) {
-        snprintf(alert->recommendation, sizeof(alert->recommendation),
-                 "%s", vc_risk_level_action(alert->risk_level));
+                        " | MEWS: %d | Risk level: %d",
+                        mews.total, mews.risk_level);
     }
 
     return alert->severity;
-}
-
-uint32_t vc_alert_format_text(const vc_alert_t *alert,
-                              char *buffer,
-                              uint32_t buffer_size) {
-    if (!alert || !buffer || buffer_size == 0) return 0;
-
-    int off = 0;
-    off += snprintf(buffer + off, buffer_size - off,
-                    "=== VITALCORE ALERT [%s] ===\n", vc_severity_name(alert->severity));
-    off += snprintf(buffer + off, buffer_size - off,
-                    "Risk Level: %s (Score: %.1f%%)\n", vc_risk_level_name(alert->risk_level),
-                    alert->risk_score);
-    off += snprintf(buffer + off, buffer_size - off,
-                    "MEWS Score: %d/14\n", alert->mews_score);
-    off += snprintf(buffer + off, buffer_size - off,
-                    "Message: %s\n", alert->message);
-    if (alert->details[0]) {
-        off += snprintf(buffer + off, buffer_size - off,
-                        "Details: %s\n", alert->details);
-    }
-    if (alert->recommendation[0]) {
-        off += snprintf(buffer + off, buffer_size - off,
-                        "Action: %s\n", alert->recommendation);
-    }
-    off += snprintf(buffer + off, buffer_size - off,
-                    "Anomalies: %u detected\n", alert->anomalies.count);
-    off += snprintf(buffer + off, buffer_size - off,
-                    "========================\n");
-
-    return (uint32_t)off;
-}
-
-uint32_t vc_alert_format_json(const vc_alert_t *alert,
-                              char *buffer,
-                              uint32_t buffer_size) {
-    if (!alert || !buffer || buffer_size == 0) return 0;
-
-    int off = 0;
-    off += snprintf(buffer + off, buffer_size - off,
-                    "{\"severity\":\"%s\",\"risk_level\":\"%s\","
-                    "\"risk_score\":%.1f,\"mews_score\":%d,"
-                    "\"anomaly_count\":%u,\"message\":\"",
-                    vc_severity_name(alert->severity),
-                    vc_risk_level_name(alert->risk_level),
-                    alert->risk_score, alert->mews_score,
-                    alert->anomalies.count);
-
-    /* Escape message for JSON */
-    for (const char *p = alert->message; *p && (uint32_t)off < buffer_size - 20; p++) {
-        if (*p == '"') buffer[off++] = '\\';
-        buffer[off++] = *p;
-    }
-
-    off += snprintf(buffer + off, buffer_size - off,
-                    "\",\"recommendation\":\"%s\"}",
-                    alert->recommendation);
-
-    return (uint32_t)off;
 }
