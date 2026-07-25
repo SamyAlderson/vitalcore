@@ -35,19 +35,30 @@ vc_severity_t vc_generate_alert(const vc_vitals_t *vitals,
     alert->timestamp = (int64_t)time(NULL);
 
     /* 1. Detect anomalies */
-    vc_analyze(vitals, history, &alert->anomalies);
+    if (!vc_analyze(vitals, history, &alert->anomalies)) {
+        // Handle analyze failure
+        alert->severity = VC_SEVERITY_INFO;
+        return alert->severity;
+    }
 
     /* 2. Calculate risk scores */
     vc_mews_score_t mews = vc_calculate_mews(vitals);
-    alert->mews_score = mews.total;
-    alert->risk_level = mews.risk_level;
-    alert->risk_score = vc_calculate_risk_score(vitals, history, &alert->anomalies);
+    if (mews.total == 0) {
+        // Handle invalid MEWS score
+        alert->mews_score = 0;
+        alert->risk_level = VC_RISK_LOW;
+        alert->risk_score = 0.0;
+    } else {
+        alert->mews_score = mews.total;
+        alert->risk_level = mews.risk_level;
+        alert->risk_score = vc_calculate_risk_score(vitals, history, &alert->anomalies);
+    }
 
     /* 3. Determine overall severity */
     alert->severity = VC_SEVERITY_INFO;
     if (alert->anomalies.has_emergency) {
         alert->severity = VC_SEVERITY_EMERGENCY;
-    } else if (alert->anomalies.has_critical || mews.risk_level >= VC_RISK_HIGH) {
+    } else if (alert->anomalies.count > 0 || (mews.risk_level >= VC_RISK_HIGH && mews.total > 0)) {
         alert->severity = VC_SEVERITY_CRITICAL;
     } else if (alert->anomalies.count > 0 || mews.risk_level >= VC_RISK_MODERATE) {
         alert->severity = VC_SEVERITY_WARNING;
