@@ -57,7 +57,9 @@ static void add_anomaly(vc_anomaly_result_t *result,
                          float value,
                          float threshold) {
     if (result->count >= VC_MAX_ANOMALIES) {
-        // TODO: handle max anomalies reached
+        // Handle max anomalies reached
+        result->has_critical = true;
+        result->has_emergency = true;
         return;
     }
 
@@ -78,7 +80,8 @@ uint32_t vc_analyze(const vc_vitals_t *vitals,
                     const vc_vitals_history_t *history,
                     vc_anomaly_result_t *result) {
     if (!vitals || !result) {
-        // TODO: handle null pointer
+        // Handle null pointer
+        memset(result, 0, sizeof(vc_anomaly_result_t));
         return 0;
     }
 
