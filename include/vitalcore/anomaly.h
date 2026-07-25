@@ -1,14 +1,3 @@
-/**
- * @file anomaly.h
- * @brief Anomaly detection for vital signs.
- *
- * Detects clinical anomalies in vital signs data using
- * evidence-based medical rules and pattern recognition.
- */
-
-#ifndef VITALCORE_ANOMALY_H
-#define VITALCORE_ANOMALY_H
-
 #include "vitals.h"
 #include "thresholds.h"
 
@@ -95,7 +84,24 @@ typedef struct {
  */
 uint32_t vc_analyze(const vc_vitals_t *vitals,
                     const vc_vitals_history_t *history,
-                    vc_anomaly_result_t *result);
+                    vc_anomaly_result_t *result) {
+    uint32_t anomalies_detected = 0;
+    for (uint32_t i = 0; i < VC_MAX_ANOMALIES; i++) {
+        result->anomalies[i].type = VC_ANOMALY_NONE;
+        result->anomalies[i].severity = VC_SEVERITY_INFO;
+        result->anomalies[i].name = "";
+        result->anomalies[i].description = "";
+        result->anomalies[i].value = 0.0;
+        result->anomalies[i].threshold = 0.0;
+    }
+    result->count = 0;
+    result->has_emergency = false;
+    result->has_critical = false;
+
+    // TODO: implement anomaly detection logic here
+    // for now, just return 0 anomalies detected
+    return 0;
+}
 
 /**
  * @brief Get human-readable string for anomaly type.
@@ -103,18 +109,39 @@ uint32_t vc_analyze(const vc_vitals_t *vitals,
  * @param type Anomaly type.
  * @return String name of the anomaly type.
  */
-const char *vc_anomaly_type_name(vc_anomaly_type_t type);
+const char *vc_anomaly_type_name(vc_anomaly_type_t type) {
+    switch (type) {
+        case VC_ANOMALY_BRADYCARDIA:
+            return "Bradycardia";
+        case VC_ANOMALY_TACHYCARDIA:
+            return "Tachycardia";
+        // ... add more cases for other anomaly types
+        default:
+            return "Unknown";
+    }
+}
 
 /**
  * @brief Get human-readable string for severity level.
  *
  * @param severity Severity level.
- * @return String name of the severity.
+ * @return String name of the severity level.
  */
-const char *vc_severity_name(vc_severity_t severity);
+const char *vc_severity_name(vc_severity_t severity) {
+    switch (severity) {
+        case VC_SEVERITY_INFO:
+            return "Informational";
+        case VC_SEVERITY_WARNING:
+            return "Warning";
+        case VC_SEVERITY_CRITICAL:
+            return "Critical";
+        case VC_SEVERITY_EMERGENCY:
+            return "Emergency";
+        default:
+            return "Unknown";
+    }
+}
 
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* VITALCORE_ANOMALY_H */
