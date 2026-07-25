@@ -1,11 +1,3 @@
-/**
- * @file vitals.h
- * @brief Vital signs data structures for VitalCore.
- *
- * Defines the core data types for representing patient vital signs.
- * All values use standard clinical units (bpm, %, mmHg, °C, breaths/min).
- */
-
 #ifndef VITALCORE_VITALS_H
 #define VITALCORE_VITALS_H
 
@@ -72,8 +64,13 @@ typedef struct {
  * @return Pointer to allocated history, or NULL on failure.
  */
 vc_vitals_history_t *vc_vitals_history_create(uint32_t capacity, uint32_t window_minutes) {
-    vc_vitals_history_t *history = malloc(sizeof(vc_vitals_history_t) + (capacity - 1) * sizeof(vc_vitals_t));
+    size_t total_size = sizeof(vc_vitals_history_t) + (capacity - 1) * sizeof(vc_vitals_t);
+    vc_vitals_history_t *history = malloc(total_size);
     if (history == NULL) {
+        return NULL;
+    }
+    if (total_size > UINT32_MAX) {
+        free(history);
         return NULL;
     }
     history->count = 0;
@@ -98,35 +95,21 @@ void vc_vitals_history_destroy(vc_vitals_history_t *history) {
  *
  * @param history Pointer to history.
  * @param vitals Vital signs reading to add.
- * @return true on success, false if buffer is full.
+ * @return 0 on success, -1 on failure.
  */
-bool vc_vitals_history_add(vc_vitals_history_t *history, const vc_vitals_t *vitals) {
+int vc_vitals_history_add_reading(vc_vitals_history_t *history, vc_vitals_t *vitals) {
     if (history == NULL || vitals == NULL) {
-        return false;
+        return -1;
     }
     if (history->count >= history->capacity) {
-        return false;
+        return -1;
     }
     history->readings[history->count] = *vitals;
     history->count++;
-    return true;
-}
-
-/**
- * @brief Get the latest reading from history.
- *
- * @param history Pointer to history.
- * @return Pointer to latest reading, or NULL if empty.
- */
-const vc_vitals_t *vc_vitals_history_latest(const vc_vitals_history_t *history) {
-    if (history == NULL || history->count == 0) {
-        return NULL;
-    }
-    return &history->readings[history->count - 1];
+    return 0;
 }
 
 #ifdef __cplusplus
 }
 #endif
-
-#endif  // VITALCORE_VITALS_H
+#endif
