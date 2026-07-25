@@ -68,9 +68,10 @@ vc_threshold_result_t vc_eval_diastolic(float diastolic, vc_age_group_t age);
  * @brief Evaluate body temperature against clinical thresholds.
  *
  * @param temperature Temperature in °C.
+ * @param age Age group.
  * @return Threshold evaluation result.
  */
-vc_threshold_result_t vc_eval_temperature(float temperature);
+vc_threshold_result_t vc_eval_temperature(float temperature, vc_age_group_t age);
 
 /**
  * @brief Evaluate respiratory rate against clinical thresholds.
