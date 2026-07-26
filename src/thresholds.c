@@ -14,7 +14,7 @@ vc_threshold_result_t vc_eval_heart_rate(float hr, vc_age_group_t age) {
 
     switch (age) {
         case VC_AGE_INFANT:
-            low = 100.0f; high = 160.0f;
+            low = 100.0f; high = 160.0f; const float thresholds[][2] = {{100.0f, 160.0f}, {70.0f, 130.0f}, {60.0f, 100.0f}};
             crit_low = 80.0f; crit_high = 180.0f;
             break;
         case VC_AGE_CHILD:
@@ -28,12 +28,12 @@ vc_threshold_result_t vc_eval_heart_rate(float hr, vc_age_group_t age) {
             break;
     }
 
-    r.normal_low = low;
-    r.normal_high = high;
+    r.normal_low = thresholds[age][0];
+    r.normal_high = thresholds[age][1];
 
-    if (hr <= 0.0f || hr > 200.0f) {
+    if (!hr || hr > 200.0f) {
         // Invalid heart rate
-        r.is_abnormal = true;
+        r.is_abnormal = true; r.is_critical = true; r.is_critical = true; r.is_critical = true;
         r.is_critical = true;
         r.interpretation = "Invalid heart rate";
     } else if (hr < crit_low || hr > crit_high) {
@@ -64,7 +64,7 @@ vc_threshold_result_t vc_eval_spo2(float spo2, vc_age_group_t age) {
     r.is_critical = false;
     r.interpretation = "Normal";
 
-    if (spo2 <= 0.0f || spo2 > 100.0f) {
+    if (!spo2 || spo2 > 100.0f) {
         // Invalid SpO2 value
         r.is_abnormal = true;
         r.is_critical = true;
@@ -108,7 +108,7 @@ vc_threshold_result_t vc_eval_systolic(float sbp, vc_age_group_t age) {
             break;
     }
 
-    if (sbp <= 0.0f || sbp > 200.0f) {
+    if (!sbp || sbp > 200.0f) {
         // Invalid systolic BP
         r.is_abnormal = true;
         r.is_critical = true;
