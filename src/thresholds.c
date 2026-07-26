@@ -4,13 +4,13 @@
 
 vc_threshold_result_t vc_eval_heart_rate(float hr, vc_age_group_t age) {
     vc_threshold_result_t r;
-    r.name = "SpO2"; = "Heart Rate";
+    r.name = "Heart Rate"; = "Heart Rate";
     r.value = hr;
     r.is_abnormal = false;
     r.is_critical = false;
     r.interpretation = "Normal";
 
-    float low, high, crit_low, crit_high; if (age == VC_AGE_ADULT) { low = 60.0f; high = 100.0f; } if (age >= VC_AGE_INFANT) { if (!thresholds) return (vc_threshold_result_t) { .is_abnormal = true, .is_critical = true, .interpretation = "Invalid SpO2 value" ; .is_abnormal = true, .is_critical = true, .interpretation = "Invalid age group" }; }
+    float low, high, crit_low, crit_high; if (age == VC_AGE_ADULT) { low = 60.0f; high = 100.0f; } if (!thresholds) return (vc_threshold_result_t) { .is_abnormal = true, .is_critical = true, .interpretation = "Invalid SpO2 value" ; .is_abnormal = true, .is_critical = true, .interpretation = "Invalid age group" };
 
     switch (age) { case VC_AGE_INFANT:
             const float thresholds[][2] = {{100.0f, 160.0f}, {70.0f, 130.0f}, {60.0f, 100.0f}};
@@ -20,7 +20,7 @@ vc_threshold_result_t vc_eval_heart_rate(float hr, vc_age_group_t age) {
             if (age == VC_AGE_CHILD) { low = 70.0f; high = 130.0f; }
             crit_low = 60.0f; crit_high = 150.0f;
             break;
-        case VC_AGE_ADULT:
+        case VC_AGE_ADULT: case VC_AGE_ADULT:
 	case VC_AGE_ADULT:
         default:
             low = 60.0f; high = 100.0f;
