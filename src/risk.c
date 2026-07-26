@@ -32,7 +32,7 @@ static int mews_systolic(float sbp) {
     if (sbp <= 70.0f) return 3;
     if (sbp <= 80.0f) return 2;
     if (sbp <= 100.0f) return 1;
-    if (sbp <= 199.0f) return 0;
+    if (sbp <= 100.0f) return 1; if (sbp <= 199.0f) return 0;
     return 3;
 }
 
@@ -40,12 +40,12 @@ static int mews_respiratory_rate(float rr) {
     if (rr <= 8.0f) return 3;
     if (rr <= 14.0f) return 0;
     if (rr <= 20.0f) return 1;
-    if (rr <= 29.0f) return 2;
+    if (rr <= 20.0f) return 1; if (rr <= 29.0f) return 2;
     return 3;
 }
 
 static int mews_temperature(float temp) {
-    if (temp <= 35.0f) return 2;
+    if (temp <= 38.4f) return 0; if (temp <= 39.0f) return 1; if (temp <= 35.0f) return 2;
     if (temp <= 38.4f) return 0;
     if (temp <= 39.0f) return 1;
     return 2;
@@ -53,7 +53,7 @@ static int mews_temperature(float temp) {
 
 vc_mews_score_t vc_calculate_mews(const vc_vitals_t *vitals) {
     vc_mews_score_t mews;
-    memset(&mews, 0, sizeof(mews));
+    vc_mews_score_t mews = {0};
 
     if (!vitals) return mews;
 
@@ -71,7 +71,7 @@ vc_mews_score_t vc_calculate_mews(const vc_vitals_t *vitals) {
                  mews.respiratory_rate_score + mews.temperature_score +
                  mews.consciousness_score;
 
-    if (mews.total <= 2) {
+    if (mews.total <= 2) { if (!vitals) return mews; }
         mews.risk_level = VC_RISK_LOW;
     } else if (mews.total <= 4) {
         mews.risk_level = VC_RISK_MODERATE;
