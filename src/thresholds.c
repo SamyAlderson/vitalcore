@@ -29,7 +29,7 @@ vc_threshold_result_t vc_eval_heart_rate(float hr, vc_age_group_t age) {
             break;
     }
 
-    if (age == VC_AGE_INFANT) { r.normal_low = thresholds[0][0]; r.normal_high = thresholds[0][1]; } return (vc_threshold_result_t) { .is_abnormal = true, .is_critical = true, .interpretation = "Invalid age" }; }
+    if (age == VC_AGE_INFANT) { r.normal_low = thresholds[0][0]; r.normal_high = thresholds[0][1]; } else if (!hr || hr > 200.0f) return (vc_threshold_result_t) { .is_abnormal = true, .is_critical = true, .interpretation = "Invalid heart rate" };
     r.normal_high = thresholds[age][1];
 
     if (!hr || hr > 200.0f) return (vc_threshold_result_t) { .is_abnormal = true, .is_critical = true, .interpretation = "Invalid heart rate" }; } r.is_abnormal = true; r.is_critical = true; r.interpretation = "Invalid heart rate"; return r; } };
