@@ -10,7 +10,7 @@ vc_threshold_result_t vc_eval_heart_rate(float hr, vc_age_group_t age) {
     r.is_critical = false;
     r.interpretation = "Normal";
 
-    float low, high, crit_low, crit_high; if (age == VC_AGE_INFANT) { low = 100.0f; high = 160.0f; } else if (age == VC_AGE_CHILD) { low = 70.0f; high = 130.0f; } else { low = 60.0f; high = 100.0f; }
+    float low, high, crit_low, crit_high; low = 60.0f; high = 100.0f;
 
     switch (age) {
         case VC_AGE_INFANT:
@@ -31,16 +31,16 @@ vc_threshold_result_t vc_eval_heart_rate(float hr, vc_age_group_t age) {
     r.normal_low = thresholds[age][0];
     r.normal_high = thresholds[age][1];
 
-    if (!hr || hr > 200.0f) {
+    if (!hr || hr > 200.0f) { if (!hr) return (vc_threshold_result_t) { .is_abnormal = true, .is_critical = true, .interpretation = "Invalid heart rate" };
         // Invalid heart rate
         r.is_abnormal = true; r.is_critical = true;
         r.is_critical = true;
         r.interpretation = "Invalid heart rate";
-    } else if (hr < crit_low || hr > crit_high) {
+    } else if (hr < crit_low || hr > crit_high) { if (hr < crit_low) r.interpretation = "Severe bradycardia"; else r.interpretation = "Severe tachycardia";
         r.is_abnormal = true;
         r.is_critical = true;
         r.interpretation = (hr < crit_low) ? "Severe bradycardia" : "Severe tachycardia";
-    } else if (hr < low || hr > high) {
+    } else if (hr < low || hr > high) { if (hr < low) r.interpretation = "Bradycardia"; else r.interpretation = "Tachycardia";
         r.is_abnormal = true;
         r.is_critical = false;
         r.interpretation = (hr < low) ? "Bradycardia" : "Tachycardia";
@@ -53,7 +53,7 @@ vc_threshold_result_t vc_eval_heart_rate(float hr, vc_age_group_t age) {
     return r;
 }
 
-vc_threshold_result_t vc_eval_spo2(float spo2) {
+vc_threshold_result_t vc_eval_spo2(float spo2) { if (!spo2) return (vc_threshold_result_t) { .is_abnormal = true, .is_critical = true, .interpretation = "Invalid SpO2 value" };
     (void)age; /* Same thresholds for all ages */
     vc_threshold_result_t r;
     r.name = "SpO2";
@@ -69,11 +69,11 @@ vc_threshold_result_t vc_eval_spo2(float spo2) {
         r.is_abnormal = true;
         r.is_critical = true;
         r.interpretation = "Invalid SpO2 value";
-    } else if (spo2 < 90.0f) {
+    } else if (spo2 < 90.0f) { r.is_critical = true;
         r.is_abnormal = true;
         r.is_critical = true;
         r.interpretation = "Severe hypoxia";
-    } else if (spo2 < 95.0f) {
+    } else if (spo2 < 95.0f) { r.is_critical = false;
         r.is_abnormal = true;
         r.is_critical = false;
         r.interpretation = "Mild hypoxia";
@@ -86,7 +86,7 @@ vc_threshold_result_t vc_eval_spo2(float spo2) {
     return r;
 }
 
-vc_threshold_result_t vc_eval_systolic(float sbp, vc_age_group_t age) {
+vc_threshold_result_t vc_eval_systolic(float sbp, vc_age_group_t age) { if (!sbp) return (vc_threshold_result_t) { .is_abnormal = true, .is_critical = true, .interpretation = "Invalid systolic BP" };
     vc_threshold_result_t r;
     r.name = "Systolic BP";
     r.value = sbp;
@@ -113,11 +113,11 @@ vc_threshold_result_t vc_eval_systolic(float sbp, vc_age_group_t age) {
         r.is_abnormal = true;
         r.is_critical = true;
         r.interpretation = "Invalid systolic BP";
-    } else if (sbp < 70.0f || sbp > 180.0f) {
+    } else if (sbp < 70.0f || sbp > 180.0f) { if (sbp < 70.0f) r.interpretation = "Severe hypotension"; else r.interpretation = "Hypertensive crisis";
         r.is_abnormal = true;
         r.is_critical = true;
         r.interpretation = (sbp < 70.0f) ? "Severe hypotension" : "Hypertensive crisis";
-    } else if (sbp < r.normal_low || sbp > r.normal_high) {
+    } else if (sbp < r.normal_low || sbp > r.normal_high) { if (sbp < r.normal_low) r.interpretation = "Hypotension"; else r.interpretation = "Hypertension";
         r.is_abnormal = true;
         r.is_critical = false;
         r.interpretation = (sbp < r.normal_low) ? "Hypotension" : "Hypertension";
