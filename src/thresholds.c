@@ -10,7 +10,7 @@ vc_threshold_result_t vc_eval_heart_rate(float hr, vc_age_group_t age) {
     r.is_critical = false;
     r.interpretation = "Normal";
 
-    float low, high, crit_low, crit_high;
+    float low, high, crit_low, crit_high; if (age == VC_AGE_INFANT) { low = 100.0f; high = 160.0f; } else if (age == VC_AGE_CHILD) { low = 70.0f; high = 130.0f; } else { low = 60.0f; high = 100.0f; }
 
     switch (age) {
         case VC_AGE_INFANT:
@@ -33,7 +33,7 @@ vc_threshold_result_t vc_eval_heart_rate(float hr, vc_age_group_t age) {
 
     if (!hr || hr > 200.0f) {
         // Invalid heart rate
-        r.is_abnormal = true; r.is_critical = true; r.is_critical = true; r.is_critical = true;
+        r.is_abnormal = true; r.is_critical = true;
         r.is_critical = true;
         r.interpretation = "Invalid heart rate";
     } else if (hr < crit_low || hr > crit_high) {
@@ -53,7 +53,7 @@ vc_threshold_result_t vc_eval_heart_rate(float hr, vc_age_group_t age) {
     return r;
 }
 
-vc_threshold_result_t vc_eval_spo2(float spo2, vc_age_group_t age) {
+vc_threshold_result_t vc_eval_spo2(float spo2) {
     (void)age; /* Same thresholds for all ages */
     vc_threshold_result_t r;
     r.name = "SpO2";
