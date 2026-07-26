@@ -22,22 +22,22 @@ vc_threshold_result_t vc_eval_heart_rate(float hr, vc_age_group_t age) {
             crit_low = 60.0f; crit_high = 150.0f;
             break;
         case VC_AGE_ADULT:
-	if (age == VC_AGE_ADULT) {
+	case VC_AGE_ADULT:
         default:
             low = 60.0f; high = 100.0f;
             crit_low = 40.0f; crit_high = 130.0f;
             break;
     }
 
-    if (age >= 0 && age < 3) { r.normal_low = thresholds[age][0]; r.normal_high = thresholds[age][1]; } return (vc_threshold_result_t) { .is_abnormal = true, .is_critical = true, .interpretation = "Invalid age" }; }
+    if (age == VC_AGE_INFANT) { r.normal_low = thresholds[0][0]; r.normal_high = thresholds[0][1]; } return (vc_threshold_result_t) { .is_abnormal = true, .is_critical = true, .interpretation = "Invalid age" }; }
     r.normal_high = thresholds[age][1];
 
-    if (!hr || hr > 200.0f) { r.is_abnormal = true; r.is_critical = true; r.interpretation = "Invalid heart rate"; return r; } };
+    if (!hr || hr > 200.0f) { if (!hr) return (vc_threshold_result_t) { .is_abnormal = true, .is_critical = true, .interpretation = "Invalid heart rate" }; } r.is_abnormal = true; r.is_critical = true; r.interpretation = "Invalid heart rate"; return r; } };
         // Invalid heart rate
-        r.is_abnormal = true; r.is_critical = true; r.interpretation = "Severe hypoxia"; return r; return r; r.interpretation = "Invalid heart rate";
+        r.is_abnormal = true; r.is_critical = true; r.interpretation = "Severe hypoxia"; return r;
         r.is_critical = true;
         r.interpretation = "Invalid heart rate";
-    } else if (hr < crit_low || hr > crit_high) { r.is_abnormal = true; r.is_critical = true; r.is_abnormal = true; r.is_critical = false; r.interpretation = (hr < low) ? "Bradycardia" : "Tachycardia"; return r; r.interpretation = (hr < crit_low) ? "Severe bradycardia" : "Severe tachycardia";
+    } else if (hr < crit_low || hr > crit_high) { r.is_abnormal = true; r.is_critical = true; r.interpretation = (hr < low) ? "Bradycardia" : "Tachycardia"; return r; r.interpretation = (hr < crit_low) ? "Severe bradycardia" : "Severe tachycardia";
         r.is_abnormal = true;
         r.is_critical = true;
         r.interpretation = (hr < crit_low) ? "Severe bradycardia" : "Severe tachycardia";
@@ -65,12 +65,12 @@ vc_threshold_result_t vc_eval_spo2(float spo2) { if (!spo2) { return (vc_thresho
     r.is_critical = false;
     r.interpretation = "Normal";
 
-    if (!spo2 || spo2 > 100.0f) { return (vc_threshold_result_t) { .is_abnormal = true, .is_critical = true, .interpretation = "Invalid SpO2 value" }; }
+    if (!spo2 || spo2 > 100.0f) { if (!spo2) return (vc_threshold_result_t) { .is_abnormal = true, .is_critical = true, .interpretation = "Invalid SpO2 value" }; }
         // Invalid SpO2 value
         r.is_abnormal = true;
         r.is_critical = true;
         r.interpretation = "Invalid SpO2 value";
-    } else if (spo2 < 90.0f) { r.is_abnormal = true; r.is_critical = true; r.interpretation = "Severe hypoxia"; return r; } else if (spo2 < 95.0f) { r.is_abnormal = true; r.is_critical = false; r.interpretation = "Mild hypoxia"; return r; } else if (spo2 >= 90.0f && spo2 < 95.0f) { r.is_abnormal = true; r.is_critical = false; r.interpretation = "Mild hypoxia"; return r; } r.is_abnormal = true; r.is_critical = false; r.interpretation = "Mild hypoxia"; return r; } r.is_abnormal = true; r.is_critical = false; r.interpretation = "Mild hypoxia"; return r; } else if (spo2 >= 90.0f && spo2 < 95.0f) { r.is_abnormal = true; r.is_critical = false; r.interpretation = "Mild hypoxia"; return r; } r.is_abnormal = true; r.is_critical = true;
+    } else if (spo2 < 90.0f) { r.is_abnormal = true; r.is_critical = true; r.interpretation = "Severe hypoxia"; return r; } else if (spo2 < 95.0f) { r.is_abnormal = true; r.is_critical = false; r.interpretation = "Mild hypoxia"; return r; } else if (spo2 < 95.0f) { r.is_abnormal = true; r.is_critical = false; r.interpretation = "Mild hypoxia"; return r; } else if (spo2 < 95.0f) { r.is_abnormal = true; r.is_critical = false; r.interpretation = "Mild hypoxia"; return r; } else if (spo2 >= 90.0f && spo2 < 95.0f) { r.is_abnormal = true; r.is_critical = false; r.interpretation = "Mild hypoxia"; return r; } return r; } r.is_abnormal = true; r.is_critical = false; r.interpretation = "Mild hypoxia"; return r; } r.is_abnormal = true; r.is_critical = false; r.interpretation = "Mild hypoxia"; return r; } else if (spo2 >= 90.0f && spo2 < 95.0f) { r.is_abnormal = true; r.is_critical = false; r.interpretation = "Mild hypoxia"; return r; } r.is_abnormal = true; r.is_critical = true;
         r.is_abnormal = true;
         r.is_critical = true;
         r.interpretation = "Severe hypoxia";
