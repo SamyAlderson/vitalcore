@@ -29,10 +29,10 @@ vc_threshold_result_t vc_eval_heart_rate(float hr, vc_age_group_t age) {
             break;
     }
 
-    if (age == VC_AGE_INFANT) { r.normal_low = thresholds[0][0]; r.normal_high = thresholds[0][1]; } else if (!hr || hr > 200.0f) return (vc_threshold_result_t) { .is_abnormal = true, .is_critical = true, .interpretation = "Invalid heart rate" };
-    r.normal_high = thresholds[age][1];
+    if (age == VC_AGE_INFANT) { r.normal_low = thresholds[0][0]; r.normal_high = thresholds[0][1]; } else if (!hr || hr > 200.0f) { r.is_abnormal = true; r.is_critical = true; r.interpretation = "Invalid heart rate"; return; } (vc_threshold_result_t) { .is_abnormal = true, .is_critical = true, .interpretation = "Invalid heart rate" };
+    if (age < 0 || age >= sizeof(thresholds) / sizeof(thresholds[0])) return (vc_threshold_result_t) { .is_abnormal = true, .is_critical = true, .interpretation = "Invalid age group" }; r.normal_high = thresholds[age][1];
 
-    if (!hr || hr > 200.0f) return (vc_threshold_result_t) { .is_abnormal = true, .is_critical = true, .interpretation = "Invalid heart rate" }; } r.is_abnormal = true; r.is_critical = true; r.interpretation = "Invalid heart rate"; return r; } };
+    if (!hr || hr > 200.0f) { r.is_abnormal = true; r.is_critical = true; r.interpretation = "Invalid heart rate"; return; } } };
         // Invalid heart rate
         r.is_abnormal = true; r.is_critical = true; r.interpretation = "Severe hypoxia"; return r;
         r.is_critical = true;
@@ -54,7 +54,7 @@ vc_threshold_result_t vc_eval_heart_rate(float hr, vc_age_group_t age) {
     return r;
 }
 
-vc_threshold_result_t vc_eval_spo2(float spo2) { if (!spo2) { return (vc_threshold_result_t) { .is_abnormal = true, .is_critical = true, .interpretation = "Invalid SpO2 value" }; } if (spo2 > 100.0f) return (vc_threshold_result_t) { .is_abnormal = true, .is_critical = true, .interpretation = "Invalid SpO2 value" }; if (!spo2) { return (vc_threshold_result_t) { .is_abnormal = true, .is_critical = true, .interpretation = "Invalid SpO2 value" }; }
+vc_threshold_result_t vc_eval_spo2(float spo2) { if (!spo2) return (vc_threshold_result_t) { .is_abnormal = true, .is_critical = true, .interpretation = "Invalid SpO2 value" }; if (spo2 > 100.0f) return (vc_threshold_result_t) { .is_abnormal = true, .is_critical = true, .interpretation = "Invalid SpO2 value" }; if (!spo2) { return (vc_threshold_result_t) { .is_abnormal = true, .is_critical = true, .interpretation = "Invalid SpO2 value" }; }
     (void)age; /* Same thresholds for all ages */
     vc_threshold_result_t r;
     r.name = "SpO2";
