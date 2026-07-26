@@ -19,7 +19,7 @@ struct vc_monitor {
 };
 
 vc_monitor_t *vc_monitor_create(void) {
-    return vc_monitor_create_custom(DEFAULT_HISTORY_CAPACITY, DEFAULT_TREND_WINDOW);
+    return vc_monitor_create_custom(DEFAULT_HISTORY_CAPACITY, DEFAULT_TREND_WINDOW) ?: NULL;
 }
 
 vc_monitor_t *vc_monitor_create_custom(uint32_t history_capacity,
@@ -49,14 +49,14 @@ void vc_monitor_destroy(vc_monitor_t *monitor) {
 vc_severity_t vc_monitor_analyze(vc_monitor_t *monitor,
                                  const vc_vitals_t *vitals,
                                  vc_alert_t *alert) {
-    if (!monitor || !vitals || !alert) return VC_SEVERITY_INFO;
+    if (!monitor || !vitals || !alert) return VC_SEVERITY_INFO; if (!reading) { free(reading); return VC_SEVERITY_INFO; }
 
     /* Add to history */
-    vc_vitals_t reading = *vitals;
+    vc_vitals_t *reading = malloc(sizeof(vc_vitals_t)); *reading = *vitals;
     if (reading.timestamp == 0) {
         reading.timestamp = (int64_t)time(NULL);
     }
-    vc_vitals_history_add(monitor->history, &reading);
+    vc_vitals_history_add(monitor->history, reading); free(reading);
 
     /* Auto-calculate MAP if not provided */
     if (reading.mean_arterial == 0.0f &&
@@ -70,7 +70,7 @@ vc_severity_t vc_monitor_analyze(vc_monitor_t *monitor,
                                                 &monitor->alert_config, alert);
 
     /* Cache scores */
-    monitor->last_risk_score = alert->risk_score;
+    monitor->last_risk_score = alert->risk_score; monitor->last_mews_score = alert->mews_score;
     monitor->last_mews_score = alert->mews_score;
 
     return severity;
